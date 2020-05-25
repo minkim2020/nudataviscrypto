@@ -9,7 +9,7 @@ library(RColorBrewer)
 # Historical Prices -------------------------------------------------------
 # source: https://www.kaggle.com/philmohun/cryptocurrency-financial-data
 
-price_dat <- read_csv("data_unprocessed/consolidated_coin_data.csv")
+price_dat <- read_csv("data_processed/price_dat.csv")
 
 price_dat <- price_dat %>%
   rename(slug = Currency,
