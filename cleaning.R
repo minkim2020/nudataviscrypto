@@ -41,6 +41,25 @@ price_dat <- price_dat %>%
 
 write_csv(price_dat, "data_processed/price_dat")
 
+
+# fixing BTC missing values -----------------------------------------------
+
+btc_dat <- read_csv("data_unprocessed/BTCUSD_day.csv") %>%
+  mutate(Symbol = "BTC")
+
+price_dat <- read_csv("data_processed/price_dat.csv")
+
+price_dat <- left_join(price_dat, btc_dat, by = c("date" = "Date", "symbol" = "Symbol"))
+
+price_dat <- price_dat %>%
+  mutate(open = if_else(is.na(open), Open, open),
+         high = if_else(is.na(high), High, high),
+         low = if_else(is.na(low), Low, low),
+         close = if_else(is.na(close), Close, close)) %>%
+  select(-Open, -High, -Low, -Close, -`Volume BTC`, -`Volume USD`)
+
+write_csv(price_dat, "data_processed/price_dat")
+
 # Awareness ---------------------------------------------------------------
 # maybe: https://www.kaggle.com/kashnitsky/news-about-major-cryptocurrencies-20132018-40k
 # google mentions?
