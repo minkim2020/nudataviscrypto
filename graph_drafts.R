@@ -32,6 +32,9 @@ price_dat %>%
   labs(x = "Date", y = "Market Cap") +
   theme_global
 
+price_dat %>%
+  group_by(name) %>%
+  count()
 
 # candlestick (open/close over time) --------------------------------------
 # INPUTS (date entry, selectbox, span/fit entry)

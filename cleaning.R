@@ -62,4 +62,73 @@ write_csv(price_dat, "data_processed/price_dat.csv")
 
 # Awareness ---------------------------------------------------------------
 # maybe: https://www.kaggle.com/kashnitsky/news-about-major-cryptocurrencies-20132018-40k
-# google mentions?
+
+geo1 <- read_csv("data_unprocessed/google/geoMap.csv", skip = 2)
+geo2 <- read_csv("data_unprocessed/google/geoMap (1).csv", skip = 2)
+geo3 <- read_csv("data_unprocessed/google/geoMap (2).csv", skip = 2)
+geo4 <- read_csv("data_unprocessed/google/geoMap (3).csv", skip = 2)
+geo5 <- read_csv("data_unprocessed/google/geoMap (4).csv", skip = 2)
+geo6 <- read_csv("data_unprocessed/google/geoMap (5).csv", skip = 2)
+geo7 <- read_csv("data_unprocessed/google/geoMap (6).csv", skip = 2)
+geo8 <- read_csv("data_unprocessed/google/geoMap (7).csv", skip = 2)
+geo9 <- read_csv("data_unprocessed/google/geoMap (8).csv", skip = 2)
+geo10 <- read_csv("data_unprocessed/google/geoMap (9).csv", skip = 2)
+geo11 <- read_csv("data_unprocessed/google/geoMap (11).csv", skip = 2)
+
+# No bitcoin SV
+google_geo_dat <- left_join(geo1, geo2)
+google_geo_dat <- left_join(google_geo_dat, geo3)
+google_geo_dat <- left_join(google_geo_dat, geo4)
+google_geo_dat <- left_join(google_geo_dat, geo5)
+google_geo_dat <- left_join(google_geo_dat, geo6)
+google_geo_dat <- left_join(google_geo_dat, geo7)
+google_geo_dat <- left_join(google_geo_dat, geo8)
+google_geo_dat <- left_join(google_geo_dat, geo9)
+google_geo_dat <- left_join(google_geo_dat, geo10)
+google_geo_dat <- left_join(google_geo_dat, geo11)
+
+# Time series
+time1 <- read_csv("data_unprocessed/google/multiTimeline.csv", skip = 2)
+time2 <- read_csv("data_unprocessed/google/multiTimeline (1).csv", skip = 2)
+time3 <- read_csv("data_unprocessed/google/multiTimeline (2).csv", skip = 2)
+time4 <- read_csv("data_unprocessed/google/multiTimeline (3).csv", skip = 2)
+time5 <- read_csv("data_unprocessed/google/multiTimeline (4).csv", skip = 2)
+time6 <- read_csv("data_unprocessed/google/multiTimeline (5).csv", skip = 2)
+time7 <- read_csv("data_unprocessed/google/multiTimeline (6).csv", skip = 2)
+time8 <- read_csv("data_unprocessed/google/multiTimeline (7).csv", skip = 2)
+time9 <- read_csv("data_unprocessed/google/multiTimeline (8).csv", skip = 2)
+time10 <- read_csv("data_unprocessed/google/multiTimeline (9).csv", skip = 2)
+time11 <- read_csv("data_unprocessed/google/multiTimeline (10).csv", skip = 2)
+time12 <- read_csv("data_unprocessed/google/multiTimeline (11).csv", skip = 2)
+
+# No bitcoin SV
+google_time_dat <- left_join(time1, time2)
+google_time_dat <- left_join(google_time_dat, time3)
+google_time_dat <- left_join(google_time_dat, time4)
+google_time_dat <- left_join(google_time_dat, time5)
+google_time_dat <- left_join(google_time_dat, time6)
+google_time_dat <- left_join(google_time_dat, time7)
+google_time_dat <- left_join(google_time_dat, time8)
+google_time_dat <- left_join(google_time_dat, time9)
+google_time_dat <- left_join(google_time_dat, time10)
+google_time_dat <- left_join(google_time_dat, time11)
+
+google_time_dat[is.na(google_time_dat)] <- 0
+google_geo_dat[is.na(google_geo_dat)] <- 0
+
+google_time_dat[google_time_dat == "<1"] <- 0.1
+google_geo_dat[google_geo_dat == "<1"] <- 0.1
+
+google_time_dat$`Tezos: (United States)`<- as.numeric(google_time_dat$`Tezos: (United States)`)
+google_time_dat$`ripple crypto: (United States)`<- as.numeric(google_time_dat$`ripple crypto: (United States)`)
+google_time_dat$`litecoin: (United States)`<- as.numeric(google_time_dat$`litecoin: (United States)`)
+google_time_dat$`Ethereum: (United States)`<- as.numeric(google_time_dat$`Ethereum: (United States)`)
+google_time_dat$`bitcoin cash: (United States)`<- as.numeric(google_time_dat$`bitcoin cash: (United States)`)
+google_time_dat$`binance coin: (United States)`<- as.numeric(google_time_dat$`binance coin: (United States)`)
+
+names(google_time_dat)
+skim(google_time_dat)
+       
+   
+write_csv(google_time_dat, "data_processed/google_time_dat.csv")
+write_csv(google_geo_dat, "data_processed/google_geo_dat.csv")
