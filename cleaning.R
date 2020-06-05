@@ -39,7 +39,7 @@ price_dat <- price_dat %>%
                             slug == "bitcoin-sv" ~ "BSV",
                             TRUE ~ symbol))
 
-write_csv(price_dat, "data_processed/price_dat")
+write_csv(price_dat, "data_processed/price_dat.csv")
 
 
 # fixing BTC missing values -----------------------------------------------
@@ -58,8 +58,7 @@ price_dat <- price_dat %>%
          close = if_else(is.na(close), Close, close)) %>%
   select(-Open, -High, -Low, -Close, -`Volume BTC`, -`Volume USD`)
 
-write_csv(price_dat, "data_processed/price_dat")
-
+write_csv(price_dat, "data_processed/price_dat.csv")
 
 # Awareness ---------------------------------------------------------------
 # maybe: https://www.kaggle.com/kashnitsky/news-about-major-cryptocurrencies-20132018-40k
