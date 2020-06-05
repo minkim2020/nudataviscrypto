@@ -60,6 +60,7 @@ price_dat <- price_dat %>%
 
 write_csv(price_dat, "data_processed/price_dat")
 
+
 # Awareness ---------------------------------------------------------------
 # maybe: https://www.kaggle.com/kashnitsky/news-about-major-cryptocurrencies-20132018-40k
 # google mentions?
