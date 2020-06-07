@@ -1,79 +1,86 @@
 library(shiny)
+library(tidyverse)
 library(shinydashboard)
-library(dashboardthemes)
-library(quantmod)
+#library(dashboardthemes)
+library(tidyquant)
 
-source("helpers.R")
 source("theme.R")
+price <- read_csv("data_processed/price_dat.csv")
 
 ui <- dashboardPage(
+  
   dashboardHeader(
     title = "CRYPTO-DASH"
   ),
   
-  
   dashboardSidebar(
-    
     sidebarMenu(
-      menuItem("Charts", tabName = "charts", icon = icon("chart-line")),
-      menuItem("About", tabName = "about", icon = icon("question-circle"))
-    )
-    
+      menuItem(h4(strong("Closing Price")), tabName = "closing_price"),
+      menuItem(h4(strong("About")), tabName = "about"))
   ),
   
   dashboardBody(
     
-    dark_theme,
+    shinyDashboardThemes(
+      theme = "grey_dark"
+    ),
     
-    tabItem(tabName = "charts",
-            
-            fluidRow(
-              
-              box(width = 2,
-                  textInput("symb", "Symbol", "BTC-USD"),
-                  
-                  dateRangeInput("dates",
-                                 "Date range",
-                                 start = "2019-01-01",
-                                 end = as.character(Sys.Date())),
-                  
-                  checkboxInput("log",
-                                "Plot y axis on log scale",
-                                value = FALSE),
-                  
-                  checkboxInput("adjust",
-                                "Adjust prices for inflation", 
-                                value = FALSE)),
-              
-              box(width = 10, plotOutput("plot", height = 1000))
-              
-                     )
-            )
-    )
-  )
-
+    tabItems(
+      
+      tabItem(tabName = "closing_price",
+              fluidRow(
+                box(
+                  width = 3,
+                  selectInput("symb", 
+                              label = "Cryptocurrency Symbol",
+                              choices = c("BTC-USD", 
+                                          "ETH-USD",
+                                          "LTC-USD"),
+                              selected = "BTC-USD"),
+                  dateRangeInput('dateRange',
+                                 label = paste("Date Range"),
+                                 start = Sys.Date() -7, end = Sys.Date(),
+                                 min = Sys.Date() - 365, max = Sys.Date(),
+                                 separator = " to ", format = "mm/dd/yyyy"),
+                  verbatimTextOutput("dateRangeText")
+                ),
+                box(width = 9 , plotOutput("graph", width = "100%"))
+              )
+      ),
+      
+      tabItem(tabName = "about", 
+              h2("About", align="center"),
+              p("Min, Nimon, and Dane"),
+              p("Sample Text"),
+              p("Bottom Text", style = "align: bottom"))
+    )))
 
 server <- function(input, output) {
   
-  dataInput <- reactive({  
-    getSymbols(input$symb, src = "yahoo",
-               from = input$dates[1],
-               to = input$dates[2],
-               auto.assign = FALSE)
+  tiingo_api_key('a517f985b208a4b4a535f99f26e303625d699caa')
+  
+  output$graph <- renderPlot({
+    
+    select_coin <- switch(input$symb, 
+                          "BTC-USD" = "btcusd",
+                          "ETH-USD" = "ethusd",
+                          "LTC-USD" = "ltcusd")
+    
+    Coin <- tq_get(select_coin,
+                   get    = "tiingo.crypto",
+                   from   = input$dateRange[1],
+                   to     = input$dateRange[2],
+                   resample_frequency = "1hour")
+    
+    Coin %>%
+      ggplot(aes(x = date, y = close)) +
+      geom_line() +
+      labs(title = "Closing Price Line Chart", y = "Closing Price", x = NULL) +
+      theme_minimal()
+    
+    
   })
   
-  `Technical Charts` <- reactive({
-    if (!input$adjust) return(dataInput())
-    adjust(dataInput())
-  })
-  
-  output$plot <- renderPlot({
-    chartSeries(`Technical Charts`(),
-                log.scale = input$log,
-                TA = "addVo(); addCCI()")
-  })
 }
 
 shinyApp(ui, server)
-
-         
