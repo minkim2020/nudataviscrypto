@@ -109,3 +109,23 @@ google_geo_dat %>%
   theme_void()
 
 # Would it be possible to make it possible to toggle between the above two graph types?
+
+
+# searches over time --------------------------------------------------------
+google_time_dat$Region <- as.Date(paste(google_time_dat$Region, "-01", sep = ""))
+
+input_date_max_2 <- date("2019-05-31")
+input_date_min_2 <- date("2016-01-01")
+input_currency_2 <- c("BTC")
+input_span_2 <- 0.3
+
+google_time_dat %>%
+  rename("date" = "Region") %>%
+  pivot_longer(cols = 2:12, names_to = "symbol", values_to = "search_popularity") %>% 
+  filter(symbol == input_currency_2,
+         date < input_date_max_2 & date > input_date_min_2) %>% 
+  ggplot(aes(x = date, y = search_popularity, color = symbol)) +
+  geom_line() + 
+  ggtitle("Historical Google Search Popularity") +
+  labs(x = "Date", y = "Search Popularity") +
+  theme_global
