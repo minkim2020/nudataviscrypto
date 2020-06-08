@@ -1,11 +1,7 @@
 library(shiny)
 library(tidyverse)
 library(shinydashboard)
-#library(dashboardthemes)
 library(tidyquant)
-
-source("theme.R")
-price <- read_csv("data_processed/price_dat.csv")
 
 ui <- dashboardPage(
   
@@ -21,8 +17,8 @@ ui <- dashboardPage(
   
   dashboardBody(
     
-    shinyDashboardThemes(
-      theme = "grey_dark"
+    tags$head(
+      tags$link(rel = "stylesheet", type = "text/css", href = "style.css")
     ),
     
     tabItems(
@@ -74,10 +70,9 @@ server <- function(input, output) {
     
     Coin %>%
       ggplot(aes(x = date, y = close)) +
-      geom_line() +
-      labs(title = "Closing Price Line Chart", y = "Closing Price", x = NULL) +
-      theme_minimal()
-    
+        geom_line() +
+          labs(title = "Closing Price Line Chart", y = "Closing Price", x = NULL) +
+          theme_minimal()
     
   })
   

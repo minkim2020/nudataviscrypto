@@ -4,8 +4,14 @@ library(tidyquant)
 library(tidyverse)
 library(janitor)
 library(skimr)
+library(ggstance)
 library(lubridate)
 library(RColorBrewer)
+library(splines)
+library(ggrepel)
+library(viridis)
+library(sf)
+library(statebins)
 
 
 # data --------------------------------------------------------------------
@@ -54,4 +60,72 @@ price_dat %>%
                    fill_up  = "darkgreen", fill_down  = "darkred") +
   ggtitle("Historical Trading Prices") +
   labs(x = "Date", y = "Price (USD)") +
+  theme_global
+
+
+
+# maps (rename) -----------------------------------------------------------
+google_geo_dat <- read_csv("data_processed/google_geo_dat.csv")
+google_time_dat <- read_csv("data_processed/google_time_dat.csv")
+
+#names(google_geo_dat) <- c("Region", "USDT", "XTZ", "XLM", "XRP", "LTC", "ETH", "EOS", "BCH", "BTC", "BNB", "BSV")
+#names(google_time_dat) <- c("Month", "USDT", "XTZ", "XLM", "XRP", "LTC", "ETH", "EOS", "BSV", "BCH", "BTC", "BNB")
+
+#write_csv(google_geo_dat, "data_processed/google_geo_dat.csv")
+#write_csv(google_time_dat, "data_processed/google_time_dat.csv")
+
+#load("data_processed/US_census.rda") 
+#load("data_processed/US_income.rda") 
+
+#US_income <- mutate(
+#US_income,
+#income_bins = cut(
+#ifelse(is.na(median_income), 25000, median_income),
+#breaks = c(0, 40000, 50000, 60000, 70000, 80000),
+#labels = c("< $40k", "$40k to $50k", "$50k to $60k", "$60k to $70k", "> $70k"),
+#right = FALSE))
+
+#google_geo_dat <- left_join(google_geo_dat, US_income, by = c("Region" = "name"))
+#write_csv(google_geo_dat, "data_processed/google_geo_dat.csv")
+
+# Maps --------------------------------------------------------------------
+# Inputs
+google_currency <- "BTC" # which currency do we want to show the counts of?
+
+google_geo_dat %>% 
+  pivot_longer(cols = 2:12, names_to = "currency", values_to = "search_popularity") %>%
+  filter(currency == google_currency) %>%
+  ggplot(aes(fill = search_popularity, color = search_popularity, geometry = geometry)) +
+  geom_sf(color = "grey80", size = 0.2) + 
+  scale_fill_viridis(discrete = FALSE) + 
+  theme_void()
+
+google_geo_dat %>% 
+  pivot_longer(cols = 2:12, names_to = "currency", values_to = "search_popularity") %>%
+  filter(currency == google_currency) %>%
+  ggplot(aes(fill = search_popularity, geometry = geometry)) +
+  geom_statebins(aes(state = Region)) + 
+  scale_fill_viridis(discrete = FALSE) + 
+  theme_void()
+
+# Would it be possible to make it possible to toggle between the above two graph types?
+
+
+# searches over time --------------------------------------------------------
+google_time_dat$Region <- as.Date(paste(google_time_dat$Region, "-01", sep = ""))
+
+input_date_max_2 <- date("2019-05-31")
+input_date_min_2 <- date("2016-01-01")
+input_currency_2 <- c("BTC")
+input_span_2 <- 0.3
+
+google_time_dat %>%
+  rename("date" = "Region") %>%
+  pivot_longer(cols = 2:12, names_to = "symbol", values_to = "search_popularity") %>% 
+  filter(symbol == input_currency_2,
+         date < input_date_max_2 & date > input_date_min_2) %>% 
+  ggplot(aes(x = date, y = search_popularity, color = symbol)) +
+  geom_line() + 
+  ggtitle("Historical Google Search Popularity") +
+  labs(x = "Date", y = "Search Popularity") +
   theme_global
