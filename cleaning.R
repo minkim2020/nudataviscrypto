@@ -4,7 +4,8 @@ library(janitor)
 library(skimr)
 library(lubridate)
 library(RColorBrewer)
-
+library(udpipe)
+library(lattice)
 
 # Historical Prices -------------------------------------------------------
 # source: https://www.kaggle.com/philmohun/cryptocurrency-financial-data
@@ -61,8 +62,6 @@ price_dat <- price_dat %>%
 write_csv(price_dat, "data_processed/price_dat.csv")
 
 # Awareness ---------------------------------------------------------------
-# maybe: https://www.kaggle.com/kashnitsky/news-about-major-cryptocurrencies-20132018-40k
-
 geo1 <- read_csv("data_unprocessed/google/geoMap.csv", skip = 2)
 geo2 <- read_csv("data_unprocessed/google/geoMap (1).csv", skip = 2)
 geo3 <- read_csv("data_unprocessed/google/geoMap (2).csv", skip = 2)
@@ -128,7 +127,47 @@ google_time_dat$`binance coin: (United States)`<- as.numeric(google_time_dat$`bi
 
 names(google_time_dat)
 skim(google_time_dat)
-       
-   
+
+
 write_csv(google_time_dat, "data_processed/google_time_dat.csv")
 write_csv(google_geo_dat, "data_processed/google_geo_dat.csv")
+
+
+
+# awareness (news) --------------------------------------------------------
+# https://www.kaggle.com/kashnitsky/news-about-major-cryptocurrencies-20132018-40k
+news_dat_1 <- read_csv("data_unprocessed/crypto_news_parsed_2013-2017_train.csv") %>%
+  select(title, year, author, source)
+news_dat_2 <- read_csv("data_unprocessed/crypto_news_parsed_2018_validation.csv") %>%
+  select(title, year, author, source)
+
+news_dat <- rbind(news_dat_1, news_dat_2)
+write_csv(news_dat, "data_processed/news_dat.csv")
+
+
+# udpipe ------------------------------------------------------------------
+news_dat <- read_csv("data_processed/news_dat.csv")
+model <- udpipe_download_model(language = "english")
+udmodel_english <- udpipe_load_model(file = model)
+
+year_annotator <- function(news_dat, category) {
+  filtered <- news_dat %>% filter(year == category)
+  annotated <- udpipe_annotate(udmodel_english, filtered$title)
+  ant_df <- data.frame(annotated)
+  return(ant_df)
+}
+
+# annotate by year
+ant_13 <- year_annotator(news_dat, "2013")
+ant_14 <- year_annotator(news_dat, "2014")
+ant_15 <- year_annotator(news_dat, "2015")
+ant_16 <- year_annotator(news_dat, "2016")
+ant_17 <- year_annotator(news_dat, "2017")
+ant_18 <- year_annotator(news_dat, "2018")
+
+write_csv(ant_13, "data_processed/ant_13.csv")
+write_csv(ant_14, "data_processed/ant_14.csv")
+write_csv(ant_15, "data_processed/ant_15.csv")
+write_csv(ant_16, "data_processed/ant_16.csv")
+write_csv(ant_17, "data_processed/ant_17.csv")
+write_csv(ant_18, "data_processed/ant_18.csv")

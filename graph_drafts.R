@@ -12,7 +12,11 @@ library(ggrepel)
 library(viridis)
 library(sf)
 library(statebins)
-
+library(lattice)
+library(wordcloud)
+library(igraph)
+library(ggraph)
+library(textrank)
 
 # data --------------------------------------------------------------------
 price_dat <- read_csv("data_processed/price_dat.csv")
@@ -129,3 +133,145 @@ google_time_dat %>%
   ggtitle("Historical Google Search Popularity") +
   labs(x = "Date", y = "Search Popularity") +
   theme_global
+
+
+# news headlines (2013-18) ------------------------------------------------
+ant_13 <- read_csv("data_processed/ant_13.csv")
+ant_14 <- read_csv("data_processed/ant_14.csv")
+ant_15 <- read_csv("data_processed/ant_15.csv")
+ant_16 <- read_csv("data_processed/ant_16.csv")
+ant_17 <- read_csv("data_processed/ant_17.csv")
+ant_18 <- read_csv("data_processed/ant_18.csv")
+
+#### Input (Which year?) ####
+dataset <- ant_13
+
+#### Top words in headlines of given year, by UPOS/Adjectives/Nouns/Verbs/Pairs ####
+# Universal Parts of Speech (UPOS)
+stats <- txt_freq(dataset$upos)
+stats$key <- factor(stats$key, levels = rev(stats$key))
+ggplot(stats, aes(x = key, y = freq)) + 
+  geom_col(fill = "#656565") + 
+  coord_flip() +
+  ggtitle("UPOS (Universal Parts of Speech)\nfrequency of occurrence") + 
+  labs(x = "Word", y = "Frequency") +
+  theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+        axis.text = element_text(family = "Arial", color = "black", size = 5),
+        axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
+
+
+# Most common nouns
+stats <- subset(dataset, upos %in% c("NOUN")) 
+stats <- txt_freq(stats$token)
+stats$key <- factor(stats$key, levels = rev(stats$key))
+ggplot(head(stats, 20), aes(x = key, y = freq)) + 
+  geom_col(fill = "#6D9EEB") + 
+  coord_flip() +
+  ggtitle("Frequently Occurring Nouns") + 
+  labs(x = "Word", y = "Frequency") +
+  theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+        axis.text = element_text(family = "Arial", color = "black", size = 5),
+        axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
+
+# Most common adjectives
+stats <- subset(dataset, upos %in% c("ADJ")) 
+stats <- txt_freq(stats$token)
+stats$key <- factor(stats$key, levels = rev(stats$key))
+ggplot(head(stats, 20), aes(x = key, y = freq)) + 
+  geom_col(fill = "#FFD965") + 
+  coord_flip() +
+  ggtitle("Frequently Occurring Adjectives") + 
+  labs(x = "Word", y = "Frequency") +
+  theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+        axis.text = element_text(family = "Arial", color = "black", size = 5),
+        axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
+
+# Most common verbs
+stats <- subset(dataset, upos %in% c("VERB")) 
+stats <- txt_freq(stats$token)
+stats$key <- factor(stats$key, levels = rev(stats$key))
+ggplot(head(stats, 20), aes(x = key, y = freq)) + 
+  geom_col(fill = "#E06566") + 
+  coord_flip() +
+  ggtitle("Frequently Occurring Verbs") + 
+  labs(x = "Word", y = "Frequency") +
+  theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+        axis.text = element_text(family = "Arial", color = "black", size = 5),
+        axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
+
+# Keyword (Unsupervised algorithm)
+stats <- keywords_rake(x = dataset, term = "lemma", group = "doc_id", 
+                       relevant = dataset$upos %in% c("NOUN", "ADJ"))
+stats$key <- factor(stats$keyword, levels = rev(stats$keyword))
+ggplot(head(subset(stats, freq > 3), 20), aes(x = key, y = rake)) + 
+  geom_col(fill = "#93C47C") + 
+  coord_flip() +
+  ggtitle("Keywords identified by RAKE") + 
+  labs(x = "Word", y = "Frequency") +
+  theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+        axis.text = element_text(family = "Arial", color = "black", size = 5),
+        axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
+
+# Top noun-verb pairing
+dataset$phrase_tag <- as_phrasemachine(dataset$upos, type = "upos")
+stats <- keywords_phrases(x = dataset$phrase_tag, term = tolower(dataset$token), 
+                          pattern = "(A|N)*N(P+D*(A|N)*N)*", 
+                          is_regex = TRUE, detailed = FALSE)
+stats <- subset(stats, ngram > 1 & freq > 3)
+stats$key <- factor(stats$keyword, levels = rev(stats$keyword))
+ggplot(head(stats, 20), aes(x = key, y = freq)) + 
+  geom_col(fill = "#8E7CC3") + 
+  coord_flip() +
+  ggtitle("Keywords - simple noun phrases") + 
+  labs(x = "Word", y = "Frequency") +
+  theme_classic() + 
+  theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+        axis.text = element_text(family = "Arial", color = "black", size = 5),
+        axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+  scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
+
+
+###### Co-occurence as word cloud (Here, we choose one of the 3 types of co-occurence, and then run the plot function at the bottom
+
+# 1) Collocation (words following one another)
+stats <- keywords_collocation(x = x, 
+                              term = "token", group = c("doc_id", "paragraph_id", "sentence_id"),
+                              ngram_max = 4)
+
+# 2) Co-occurrences: How frequent do words occur in the same sentence, in this case only nouns or adjectives
+stats <- cooccurrence(x = subset(x, upos %in% c("NOUN", "ADJ")), 
+                      term = "lemma", group = c("doc_id", "paragraph_id", "sentence_id"))
+
+# 3) Co-occurrences: How frequent do words follow one another even if we would skip 2 words in between
+stats <- cooccurrence(x = dataset$lemma, 
+                      relevant = dataset$upos %in% c("NOUN", "ADJ"), skipgram = 2)
+head(stats)
+
+
+# Main plot function
+wordnet <- head(stats, 30)
+wordnet <- graph_from_data_frame(wordnet)
+ggraph(wordnet, layout = "fr") +
+  geom_edge_link(aes(width = cooc, edge_alpha = cooc), edge_colour = "blue") +
+  geom_node_text(aes(label = name), col = "purple", size = 4) +
+  theme_graph(base_family = "Arial") +
+  theme(legend.position = "none") +
+  ggtitle("Cooccurrences within 3 words distance")
+
+
+# Another option: Wordcloud
+stats <- textrank_keywords(dataset$lemma, 
+                           relevant = dataset$upos %in% c("NOUN", "ADJ", "VERB"), 
+                           ngram_max = 10, sep = " ")
+stats <- subset(stats$keywords, ngram > 1 & freq >= 2)
+wordcloud(words = stats$keyword, freq = stats$freq)
