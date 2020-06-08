@@ -12,6 +12,7 @@ ui <- dashboardPage(
   dashboardSidebar(
     sidebarMenu(
       menuItem(h4(strong("Closing Price")), tabName = "closing_price"),
+      menuItem(h4(strong("Market Capitalization")), tabName = "market_cap"),
       menuItem(h4(strong("About")), tabName = "about"))
   ),
   
@@ -41,6 +42,12 @@ ui <- dashboardPage(
                   verbatimTextOutput("dateRangeText")
                 ),
                 box(width = 9 , plotOutput("graph", width = "100%"))
+              )
+      ),
+      
+      tabItem(tabName = "market_cap", 
+              fluidRow(
+                box(width = 12, plotOutput("graph", width = "100%"))
               )
       ),
       
@@ -79,3 +86,12 @@ server <- function(input, output) {
 }
 
 shinyApp(ui, server)
+
+
+
+
+
+
+
+
+
