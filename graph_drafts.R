@@ -55,3 +55,19 @@ price_dat %>%
   ggtitle("Historical Trading Prices") +
   labs(x = "Date", y = "Price (USD)") +
   theme_global
+
+
+
+# maps (rename) -----------------------------------------------------------
+google_geo_dat <- read_csv("data_processed/google_geo_dat.csv")
+google_time_dat <- read_csv("data_processed/google_time_dat.csv")
+
+#names(google_geo_dat) <- c("Region", "USDT", "XTZ", "XLM", "XRP", "LTC", "ETH", "EOS", "BCH", "BTC", "BNB", "BSV")
+#names(google_time_dat) <- c("Month", "USDT", "XTZ", "XLM", "XRP", "LTC", "ETH", "EOS", "BSV", "BCH", "BTC", "BNB")
+
+#write_csv(google_geo_dat, "data_processed/google_geo_dat.csv")
+#write_csv(google_time_dat, "data_processed/google_time_dat.csv")
+
+# maps --------------------------------------------------------------------
+
+
