@@ -53,7 +53,6 @@ input_date_min <- date("2019-01-01")
 input_currency <- c("BTC")
 input_span <- 0.3
 
-
 price_dat %>%
   filter(symbol == input_currency,
          date < input_date_max & date > input_date_min) %>% 
@@ -63,8 +62,18 @@ price_dat %>%
                    colour_up = "darkgreen", colour_down = "darkred", 
                    fill_up  = "darkgreen", fill_down  = "darkred") +
   ggtitle("Historical Trading Prices") +
-  labs(x = "Date", y = "Price (USD)") +
-  theme_global
+  labs(x = "Date", y = "Price (USD)")
+
+ggplotly(price_dat %>%
+           filter(symbol == c("BTC"),
+                  date < date("2019-05-31") & date > date("2019-01-01")) %>% 
+                    ggplot(aes(x = date, y = close)) +
+                    geom_smooth(size = 0.5, se = FALSE, span =  0.3, color = "gold") +
+                    geom_candlestick(aes(open = open, high = high, low = low, close = close), 
+                                     colour_up = "darkgreen", colour_down = "darkred", 
+                                     fill_up  = "darkgreen", fill_down  = "darkred") +
+                    ggtitle("Historical Trading Prices") +
+                    labs(x = "Date", y = "Price (USD)"))
 
 
 

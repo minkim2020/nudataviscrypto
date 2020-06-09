@@ -1,2 +1,2 @@
-# nudataviscrypto
-STAT 302: Data Visualization (Final Project)
+# CRYPTO-DASH
+A shiny R Crypto-dashboard
