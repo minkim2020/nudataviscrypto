@@ -89,21 +89,20 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(width = 3,
-                    checkboxGroupInput("picksomecoins", 
-                                       label = "Select Currencies", 
-                                       choices = list("BTC-USD" = "BTC", 
-                                                      "ETH-USD" = "ETH", 
-                                                      "LTC-USD" = "LTC",
-                                                      "USDT-USD" = "USDT",
-                                                      "XRP-USD" = "XRP"),
-                                       selected = "BTC"),
+                    radioButtons("pickacoin", "Select Coin",
+                                 c("BTC-USD" = "BTC", 
+                                   "ETH-USD" = "ETH", 
+                                   "LTC-USD" = "LTC",
+                                   "USDT-USD" = "USDT",
+                                   "XRP-USD" = "XRP"),
+                                 selected = "BTC"),
                   dateRangeInput('dateRangeMin',
                                  label = paste("Date Range"),
                                  start = "2019-01-01", end = "2019-05-31",
                                  min = "2013-04-28", max = "2019-12-04",
                                  separator = " to ", format = "mm/dd/yyyy")
                 ),
-                box(width = 9, plotlyOutput("candle_stick", width = "100%"))
+                box(width = 9, plotOutput("candle_stick", width = "100%"))
               )
       ),
       
@@ -202,16 +201,18 @@ server <- function(input, output) {
     
   })
   
-  output$candle_stick <- renderPlotly({
-  
+  output$candle_stick <- renderPlot({
+    
     price_dat %>%
-      filter(date < input$dateRangeMin[2] & date > input$dateRangeMin[1]) %>% 
-      filter(symbol == c(input$picksomecoins)) %>% 
-      ggplot(aes(x = date, y = market_cap, color = symbol)) +
-      geom_line() + 
-      ggtitle("Historical Market Cap") +
-      labs(x = "Date", y = "Market Cap") +
-      theme_global
+      filter(symbol == input$pickacoin,
+             date < input$dateRangeMin[2] & date > input$dateRangeMin[1]) %>% 
+      ggplot(aes(x = date, y = close)) +
+      geom_smooth(size = 0.5, se = FALSE, span = 0.3, color = "gold") +
+      tidyquant::geom_candlestick(aes(open = open, high = high, low = low, close = close), 
+                       colour_up = "darkgreen", colour_down = "darkred", 
+                       fill_up  = "darkgreen", fill_down  = "darkred") +
+      ggtitle("Historical Trading Prices") +
+      labs(x = "Date", y = "Price (USD)")
     
     
   })
