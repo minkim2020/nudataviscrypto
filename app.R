@@ -9,10 +9,42 @@ library(janitor)
 library(scales)
 library(statebins)
 library(viridis)
+library(janitor)
+library(skimr)
+library(ggstance)
+library(lubridate)
+library(RColorBrewer)
+library(splines)
+library(ggrepel)
+library(viridis)
+library(sf)
+library(statebins)
+library(lattice)
+library(wordcloud)
+library(igraph)
+library(ggraph)
+library(textrank)
+library(udpipe)
 
 price_dat <- read_csv("data/price_dat.csv")
 google_geo_dat <- read_csv("data/google_geo_dat.csv")
 google_time_dat <- read_csv("data/google_time_dat.csv")
+ant_13 <- read_csv("data/ant_13.csv")
+ant_14 <- read_csv("data/ant_14.csv")
+ant_15 <- read_csv("data/ant_15.csv")
+ant_16 <- read_csv("data/ant_16.csv")
+ant_17 <- read_csv("data/ant_17.csv")
+ant_18 <- read_csv("data/ant_18.csv")
+
+theme_global <- theme_minimal() + 
+  theme(plot.title = element_text(hjust = 0.5, family = "Arial", face = "bold", size = 13),
+        panel.grid.major.x = element_blank(),
+        panel.grid.minor.x = element_blank(),
+        axis.text.x = element_text(angle = 70, hjust = 1),
+        axis.text = element_text(family = "Arial", size = 7),
+        axis.title = element_text(family = "Arial", size = 10, face = "bold"),
+        legend.text = element_text(family = "Arial", size = 7),
+        legend.title = element_text(family = "Arial", size = 10))
 
 ui <- dashboardPage(
   
@@ -25,6 +57,7 @@ ui <- dashboardPage(
       menuItem(h4(strong("Hourly Closing Price")), tabName = "closing_price"),
       menuItem(h4(strong("Market Capitalization")), tabName = "market_cap"),
       menuItem(h4(strong("Search Trends")), tabName = "search_trends"),
+      menuItem(h4(strong("Buzz Words")), tabName = "buzz_words"),
       menuItem(h4(strong("About")), tabName = "about"))
   ),
   
@@ -56,7 +89,7 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(width = 3,
-                    checkboxGroupInput("CoinsMin", 
+                    checkboxGroupInput("picksomecoins", 
                                        label = "Select Currencies", 
                                        choices = list("BTC-USD" = "BTC", 
                                                       "ETH-USD" = "ETH", 
@@ -66,8 +99,8 @@ ui <- dashboardPage(
                                        selected = "BTC"),
                   dateRangeInput('dateRangeMin',
                                  label = paste("Date Range"),
-                                 start = as_date(2019-01-01), end = as_date(2019-05-31),
-                                 min = as_date(2013-04-28), max = as_date(2019-12-04),
+                                 start = "2019-01-01", end = "2019-05-31",
+                                 min = "2013-04-28", max = "2019-12-04",
                                  separator = " to ", format = "mm/dd/yyyy")
                 ),
                 box(width = 9, plotlyOutput("candle_stick", width = "100%"))
@@ -112,10 +145,29 @@ ui <- dashboardPage(
                                    "LTC-USD" = "LTC",
                                    "USDT-USD" = "USDT",
                                    "XRP-USD" = "XRP"),
-                                 selected = "BTC")),
+                                 selected = "BTC"),
+                    dateRangeInput('coin_seach_trends_time',
+                                   label = paste("Date Range"),
+                                   start = "2016-01-01", end = "2019-05-31",
+                                   min = "2013-01-01", max = "2020-06-01",
+                                   separator = " to ", format = "mm/dd/yyyy")),
                 box(width = 9, plotOutput("search_trends_output", width = "100%"))
               )
       ),
+      
+      tabItem(tabName = "buzz_words", 
+              fluidRow(
+                box(width = 3,
+                    selectInput("select_year", "Select Year",
+                                c("2013" = "ant_13",
+                                  "2014" = "ant_14",
+                                  "2015" = "ant_15",
+                                  "2016" = "ant_16",
+                                  "2017" = "ant_17",
+                                  "2018" = "ant_18"),
+                                selected = "2018")),
+                box(width = 9, plotOutput("buzz_words_nouns", width = "100%"))
+              )),
       
       tabItem(tabName = "about", 
               h2("About", align="center"),
@@ -151,17 +203,15 @@ server <- function(input, output) {
   })
   
   output$candle_stick <- renderPlotly({
-    
-    ggplotly(price_dat %>%
-               filter(symbol == c(input$CoinsMin),
-                      date < date("2019-05-31") & date > date("2019-01-01")) %>% 
-               ggplot(aes(x = date, y = close)) +
-               geom_smooth(size = 0.5, se = FALSE, span =  0.3, color = "gold") +
-               geom_candlestick(aes(open = open, high = high, low = low, close = close), 
-                                colour_up = "darkgreen", colour_down = "darkred", 
-                                fill_up  = "darkgreen", fill_down  = "darkred") +
-               ggtitle("Historical Trading Prices") +
-               labs(x = "Date", y = "Price (USD)"))
+  
+    price_dat %>%
+      filter(date < input$dateRangeMin[2] & date > input$dateRangeMin[1]) %>% 
+      filter(symbol == c(input$picksomecoins)) %>% 
+      ggplot(aes(x = date, y = market_cap, color = symbol)) +
+      geom_line() + 
+      ggtitle("Historical Market Cap") +
+      labs(x = "Date", y = "Market Cap") +
+      theme_global
     
     
   })
@@ -189,7 +239,8 @@ server <- function(input, output) {
       ggplot(aes(x = date, y = market_cap, color = symbol)) +
       geom_line() + 
       ggtitle("Historical Market Cap") +
-      labs(x = "Date", y = "Market Cap")
+      labs(x = "Date", y = "Market Cap")  +
+      theme_global
 
   })
   
@@ -207,15 +258,55 @@ server <- function(input, output) {
   
   output$search_trends_output <- renderPlot({
     
+    google_time_dat$Region <- as.Date(paste(google_time_dat$Region, "-01", sep = ""))
+    
     google_time_dat %>%
       rename("date" = "Region") %>%
       pivot_longer(cols = 2:12, names_to = "symbol", values_to = "search_popularity") %>% 
-      filter(symbol == input_currency_2,
-             date < input_date_max_2 & date > input_date_min_2) %>% 
+      filter(symbol == input$coin_search_trends) %>%
+      filter(date < date(input$coin_seach_trends_time[2]) & date > date(input$coin_seach_trends_time[1])) %>% 
       ggplot(aes(x = date, y = search_popularity, color = symbol)) +
       geom_line() + 
       ggtitle("Historical Google Search Popularity") +
-      labs(x = "Date", y = "Search Popularity")
+      labs(x = "Date", y = "Search Popularity") +
+      theme_global
+    
+  })
+  
+  output$buzz_words_nouns <- renderPlot({
+    
+    dataset <- reactive({
+      if (input$select_year == 2013){
+        abc <- ant_13
+      } else if (input$select_year == 2014) {
+        abc <- ant_14
+      } else if (input$select_year == 2015) {
+        abc <- ant_15
+      } else if (input$select_year == 2016){
+        abc <- ant_16
+      } else if (input$select_year == 2017) {
+        abc <- ant_17
+      } else if (input$select_year == 2018) {
+        abc <- ant_18
+      }
+      return(abc)
+    })
+
+    stats <- dataset %>% subset(upos %in% c("NOUN"))
+    
+    stats <- txt_freq(stats$token)
+    stats$key <- factor(stats$key, levels = rev(stats$key))
+    
+    ggplot(head(stats, 20), aes(x = key, y = freq)) + 
+      geom_col(fill = "#6D9EEB") + 
+      coord_flip() +
+      ggtitle("Frequently Occurring Nouns") + 
+      labs(x = "Word", y = "Frequency") +
+      theme_classic() + 
+      theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+            axis.text = element_text(family = "Arial", color = "black", size = 5),
+            axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+      scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
     
   })
   
