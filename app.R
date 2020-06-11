@@ -280,7 +280,7 @@ server <- function(input, output) {
       theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
             axis.text = element_text(family = "Arial", color = "black", size = 5),
             axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
-      scale_y_continuous(expand = expansion(mult = c(0, .2)))
+      scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
     
   })
   
@@ -299,7 +299,7 @@ server <- function(input, output) {
       theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
             axis.text = element_text(family = "Arial", color = "black", size = 5),
             axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
-      scale_y_continuous(expand = expansion(mult = c(0, .2)))
+      scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
   })
   
   output$buzz_words_verb <- renderPlot({
@@ -317,7 +317,7 @@ server <- function(input, output) {
       theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
             axis.text = element_text(family = "Arial", color = "black", size = 5),
             axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
-      scale_y_continuous(expand = expansion(mult = c(0, .2)))
+      scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
   })
   
   output$buzz_words_rake <- renderPlot({
@@ -335,7 +335,7 @@ server <- function(input, output) {
       theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
             axis.text = element_text(family = "Arial", color = "black", size = 5),
             axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
-      scale_y_continuous(expand = expansion(mult = c(0, .2)))
+      scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
   })
   
   output$buzz_words_cooccurrences <- renderPlot({
