@@ -29,11 +29,6 @@ library(udpipe)
 price_dat <- read_csv("data/price_dat.csv")
 google_geo_dat <- read_csv("data/google_geo_dat.csv")
 google_time_dat <- read_csv("data/google_time_dat.csv")
-ant_13 <- read_csv("data/ant_13.csv")
-ant_14 <- read_csv("data/ant_14.csv")
-ant_15 <- read_csv("data/ant_15.csv")
-ant_16 <- read_csv("data/ant_16.csv")
-ant_17 <- read_csv("data/ant_17.csv")
 ant_18 <- read_csv("data/ant_18.csv")
 
 theme_global <- theme_minimal() + 
@@ -156,23 +151,19 @@ ui <- dashboardPage(
       
       tabItem(tabName = "buzz_words", 
               fluidRow(
-                box(width = 3,
-                    selectInput("select_year", "Select Year",
-                                c("2013" = "ant_13",
-                                  "2014" = "ant_14",
-                                  "2015" = "ant_15",
-                                  "2016" = "ant_16",
-                                  "2017" = "ant_17",
-                                  "2018" = "ant_18"),
-                                selected = "2018")),
-                box(width = 9, plotOutput("buzz_words_nouns", width = "100%"))
+                box(width = 12, plotOutput("buzz_words_nouns", width = "100%")),
+                box(width = 12, plotOutput("buzz_words_adj", width = "100%")),
+                box(width = 12, plotOutput("buzz_words_verb", width = "100%")),
+                box(width = 12, plotOutput("buzz_words_rake", width = "100%")),
+                box(width = 12, plotOutput("buzz_words_cooccurrences", width = "100%"))
               )),
       
       tabItem(tabName = "about", 
               h2("About", align="center"),
-              p("Min, Nimon, and Dane"),
-              p("Sample Text"),
-              p("Bottom Text", style = "align: bottom"))
+              p("By Min, Nimon, and Dane", style = "align: center"),
+              p("Dane: Shiny integration, dashboard theme"),
+              p("Min: Plot visuals, data pulling / cleaning"),
+              p("Nimon: Plot visuals / dashboard theme"))
     )))
 
 server <- function(input, output) {
@@ -275,26 +266,8 @@ server <- function(input, output) {
   })
   
   output$buzz_words_nouns <- renderPlot({
-    
-    dataset <- reactive({
-      if (input$select_year == 2013){
-        abc <- ant_13
-      } else if (input$select_year == 2014) {
-        abc <- ant_14
-      } else if (input$select_year == 2015) {
-        abc <- ant_15
-      } else if (input$select_year == 2016){
-        abc <- ant_16
-      } else if (input$select_year == 2017) {
-        abc <- ant_17
-      } else if (input$select_year == 2018) {
-        abc <- ant_18
-      }
-      return(abc)
-    })
 
-    stats <- dataset %>% subset(upos %in% c("NOUN"))
-    
+    stats <- ant_18 %>% subset(upos %in% c("NOUN"))
     stats <- txt_freq(stats$token)
     stats$key <- factor(stats$key, levels = rev(stats$key))
     
@@ -307,10 +280,79 @@ server <- function(input, output) {
       theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
             axis.text = element_text(family = "Arial", color = "black", size = 5),
             axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
-      scale_y_continuous(expand = expand_scale(mult = c(0, .2)))
+      scale_y_continuous(expand = expansion(mult = c(0, .2)))
     
   })
   
+  output$buzz_words_adj <- renderPlot({
+    
+    stats <- subset(ant_18, upos %in% c("ADJ")) 
+    stats <- txt_freq(stats$token)
+    stats$key <- factor(stats$key, levels = rev(stats$key))
+    
+    ggplot(head(stats, 20), aes(x = key, y = freq)) + 
+      geom_col(fill = "#FFD965") + 
+      coord_flip() +
+      ggtitle("Frequently Occurring Adjectives") + 
+      labs(x = "Word", y = "Frequency") +
+      theme_classic() + 
+      theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+            axis.text = element_text(family = "Arial", color = "black", size = 5),
+            axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+      scale_y_continuous(expand = expansion(mult = c(0, .2)))
+  })
+  
+  output$buzz_words_verb <- renderPlot({
+    
+    stats <- subset(ant_18, upos %in% c("VERB")) 
+    stats <- txt_freq(stats$token)
+    stats$key <- factor(stats$key, levels = rev(stats$key))
+    
+    ggplot(head(stats, 20), aes(x = key, y = freq)) + 
+      geom_col(fill = "#E06566") + 
+      coord_flip() +
+      ggtitle("Frequently Occurring Verbs") + 
+      labs(x = "Word", y = "Frequency") +
+      theme_classic() + 
+      theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+            axis.text = element_text(family = "Arial", color = "black", size = 5),
+            axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+      scale_y_continuous(expand = expansion(mult = c(0, .2)))
+  })
+  
+  output$buzz_words_rake <- renderPlot({
+    
+    stats <- keywords_rake(x = ant_18, term = "lemma", group = "doc_id", 
+                           relevant = ant_18$upos %in% c("NOUN", "ADJ"))
+    stats$key <- factor(stats$keyword, levels = rev(stats$keyword))
+    
+    ggplot(head(subset(stats, freq > 3), 20), aes(x = key, y = rake)) + 
+      geom_col(fill = "#93C47C") + 
+      coord_flip() +
+      ggtitle("Keywords identified by RAKE") + 
+      labs(x = "Word", y = "Frequency") +
+      theme_classic() + 
+      theme(plot.title = element_text(hjust = 0.5, size = 12, family = "Arial", face = "bold"),
+            axis.text = element_text(family = "Arial", color = "black", size = 5),
+            axis.title = element_text(family = "Arial", size = 8, face = "bold")) +
+      scale_y_continuous(expand = expansion(mult = c(0, .2)))
+  })
+  
+  output$buzz_words_cooccurrences <- renderPlot({
+    
+    stats <- cooccurrence(x = subset(x, upos %in% c("NOUN", "ADJ")), 
+                          term = "lemma", group = c("doc_id", "paragraph_id", "sentence_id"))
+    
+    wordnet <- head(stats, 30)
+    wordnet <- graph_from_data_frame(wordnet)
+    ggraph(wordnet, layout = "fr") +
+      geom_edge_link(aes(width = cooc, edge_alpha = cooc), edge_colour = "blue") +
+      geom_node_text(aes(label = name), col = "purple", size = 4) +
+      theme_graph(base_family = "Arial") +
+      theme(legend.position = "none") +
+      ggtitle("Cooccurrences within 3 words distance")
+    
+  })
 }
 
 shinyApp(ui, server)
