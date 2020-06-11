@@ -29,7 +29,7 @@ library(udpipe)
 price_dat <- read_csv("data/price_dat.csv")
 google_geo_dat <- read_csv("data/google_geo_dat.csv")
 google_time_dat <- read_csv("data/google_time_dat.csv")
-ant_18 <- read_csv("data/ant_18.csv")
+ant_17 <- read_csv("data/ant_17.csv")
 
 theme_global <- theme_minimal() + 
   theme(plot.title = element_text(hjust = 0.5, family = "Arial", face = "bold", size = 13),
@@ -343,14 +343,14 @@ server <- function(input, output) {
   
   output$buzz_words_cooccurrences <- renderPlot({
     
-    stats <- cooccurrence(x = subset(dataset, upos %in% c("NOUN", "ADJ")), 
+    stats <- cooccurrence(x = subset(ant_17, upos %in% c("NOUN", "ADJ")), 
                           term = "lemma", group = c("doc_id", "paragraph_id", "sentence_id"))
     
-    wordnet <- head(stats, 30)
+    wordnet <- head(stats, 40)
     wordnet <- graph_from_data_frame(wordnet)
     ggraph(wordnet, layout = "fr") +
       geom_edge_link(aes(width = cooc, edge_alpha = cooc), edge_colour = "blue") +
-      geom_node_text(aes(label = name), col = "purple", size = 4) +
+      geom_node_text(aes(label = name), col = "purple", size = 6) +
       theme_graph(base_family = "Arial") +
       theme(legend.position = "none") +
       ggtitle("Cooccurrences within 3 words distance")
