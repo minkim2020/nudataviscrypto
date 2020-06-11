@@ -205,7 +205,7 @@ server <- function(input, output) {
       geom_smooth(size = 0.5, se = FALSE, span = 0.3, color = "gold") +
       tidyquant::geom_candlestick(aes(open = open, high = high, low = low, close = close), 
                        colour_up = "darkgreen", colour_down = "darkred", 
-                       fill_up  = "darkgreen", fill_down  = "darkred") +
+                       fill_up = "darkgreen", fill_down = "darkred") +
       ggtitle("Historical Trading Prices") +
       labs(x = "Date", y = "Price (USD)")
     
