@@ -145,7 +145,7 @@ google_time_dat %>%
 
 
 # news headlines (2013-18) ------------------------------------------------
-ant_13 <- read_csv("data_processed/ant_13.csv")
+ant_13 <- read_csv("data/ant_13.csv")
 ant_14 <- read_csv("data_processed/ant_14.csv")
 ant_15 <- read_csv("data_processed/ant_15.csv")
 ant_16 <- read_csv("data_processed/ant_16.csv")
@@ -253,7 +253,7 @@ ggplot(head(stats, 20), aes(x = key, y = freq)) +
 ###### Co-occurence as word cloud (Here, we choose one of the 3 types of co-occurence, and then run the plot function at the bottom
 
 # 1) Collocation (words following one another)
-stats <- keywords_collocation(x = x, 
+stats <- keywords_collocation(x = dataset, 
                               term = "token", group = c("doc_id", "paragraph_id", "sentence_id"),
                               ngram_max = 4)
 

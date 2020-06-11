@@ -163,7 +163,10 @@ ui <- dashboardPage(
               p("By Min, Nimon, and Dane", style = "align: center"),
               p("Dane: Shiny integration, dashboard theme"),
               p("Min: Plot visuals, data pulling / cleaning"),
-              p("Nimon: Plot visuals / dashboard theme"))
+              p("Nimon: Plot visuals / dashboard theme"),
+              p("Source 1: https://www.kaggle.com/sudalairajkumar/cryptocurrencypricehistory"),
+              p("Source 2: https://www.kaggle.com/kashnitsky/news-about-major-cryptocurrencies-20132018-40k"),
+              p("Source 3: https://trends.google.com/trends/explore?date=2013-01-01%202018-12-31&geo=US&q=bitcoin"))
     )))
 
 server <- function(input, output) {
@@ -340,7 +343,7 @@ server <- function(input, output) {
   
   output$buzz_words_cooccurrences <- renderPlot({
     
-    stats <- cooccurrence(x = subset(x, upos %in% c("NOUN", "ADJ")), 
+    stats <- cooccurrence(x = subset(dataset, upos %in% c("NOUN", "ADJ")), 
                           term = "lemma", group = c("doc_id", "paragraph_id", "sentence_id"))
     
     wordnet <- head(stats, 30)
