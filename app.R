@@ -30,6 +30,7 @@ price_dat <- read_csv("data/price_dat.csv")
 google_geo_dat <- read_csv("data/google_geo_dat.csv")
 google_time_dat <- read_csv("data/google_time_dat.csv")
 ant_17 <- read_csv("data/ant_17.csv")
+ant_18 <- read_csv("data/ant_18.csv")
 
 theme_global <- theme_minimal() + 
   theme(plot.title = element_text(hjust = 0.5, family = "Arial", face = "bold", size = 13),
