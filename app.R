@@ -29,7 +29,6 @@ library(udpipe)
 price_dat <- read_csv("data/price_dat.csv")
 google_geo_dat <- read_csv("data/google_geo_dat.csv")
 google_time_dat <- read_csv("data/google_time_dat.csv")
-ant_17 <- read_csv("data/ant_17.csv")
 ant_18 <- read_csv("data/ant_18.csv")
 
 theme_global <- theme_minimal() + 
@@ -92,11 +91,11 @@ ui <- dashboardPage(
                                    "USDT-USD" = "USDT",
                                    "XRP-USD" = "XRP"),
                                  selected = "BTC"),
-                  dateRangeInput('dateRangeMin',
-                                 label = paste("Date Range"),
-                                 start = "2019-01-01", end = "2019-05-31",
-                                 min = "2013-04-28", max = "2019-12-04",
-                                 separator = " to ", format = "mm/dd/yyyy")
+                    dateRangeInput('dateRangeMin',
+                                   label = paste("Date Range"),
+                                   start = "2019-01-01", end = "2019-05-31",
+                                   min = "2013-04-28", max = "2019-12-04",
+                                   separator = " to ", format = "mm/dd/yyyy")
                 ),
                 box(width = 9, plotOutput("candle_stick", width = "100%"))
               )
@@ -108,14 +107,14 @@ ui <- dashboardPage(
               ),
               fluidRow(
                 box(width = 3,
-                         checkboxGroupInput("coinselect", 
-                                            label = "Select Currencies", 
-                                            choices = list("BTC-USD" = "BTC", 
-                                                           "ETH-USD" = "ETH", 
-                                                           "LTC-USD" = "LTC",
-                                                           "USDT-USD" = "USDT",
-                                                           "XRP-USD" = "XRP"),
-                                            selected = "BTC")),
+                    checkboxGroupInput("coinselect", 
+                                       label = "Select Currencies", 
+                                       choices = list("BTC-USD" = "BTC", 
+                                                      "ETH-USD" = "ETH", 
+                                                      "LTC-USD" = "LTC",
+                                                      "USDT-USD" = "USDT",
+                                                      "XRP-USD" = "XRP"),
+                                       selected = "BTC")),
                 box(width = 9, plotlyOutput("graph_market_cap", width = "100%"))
               )
       ),
@@ -179,19 +178,19 @@ server <- function(input, output) {
     
     select_coin <- switch(input$symb, 
                           "BTC-USD" = "btcusd",
-                         "ETH-USD" = "ethusd",
+                          "ETH-USD" = "ethusd",
                           "LTC-USD" = "ltcusd")
     
     Coin <- tq_get(select_coin,
                    get    = "tiingo.crypto",
                    from   = input$dateRange[1],
                    to     = input$dateRange[2],
-                  resample_frequency = "1day")
+                   resample_frequency = "1day")
     
     ggplotly(Coin %>%
-        ggplot(aes(x = date, y = close)) +
-        geom_line() +
-          labs(y = "Closing Price", x = NULL))
+               ggplot(aes(x = date, y = close)) +
+               geom_line() +
+               labs(y = "Closing Price", x = NULL))
     
     
   })
@@ -204,8 +203,8 @@ server <- function(input, output) {
       ggplot(aes(x = date, y = close)) +
       geom_smooth(size = 0.5, se = FALSE, span = 0.3, color = "gold") +
       tidyquant::geom_candlestick(aes(open = open, high = high, low = low, close = close), 
-                       colour_up = "darkgreen", colour_down = "darkred", 
-                       fill_up  = "darkgreen", fill_down  = "darkred") +
+                                  colour_up = "darkgreen", colour_down = "darkred", 
+                                  fill_up  = "darkgreen", fill_down  = "darkred") +
       ggtitle("Historical Trading Prices") +
       labs(x = "Date", y = "Price (USD)")
     
@@ -229,7 +228,7 @@ server <- function(input, output) {
   })
   
   output$graph_market_cap <- renderPlotly({
-      
+    
     price_dat %>%
       filter(symbol == c(input$coinselect)) %>%
       ggplot(aes(x = date, y = market_cap, color = symbol)) +
@@ -237,7 +236,7 @@ server <- function(input, output) {
       ggtitle("Historical Market Cap") +
       labs(x = "Date", y = "Market Cap")  +
       theme_global
-
+    
   })
   
   output$search_output <- renderPlot({
@@ -270,7 +269,7 @@ server <- function(input, output) {
   })
   
   output$buzz_words_nouns <- renderPlot({
-
+    
     stats <- ant_18 %>% subset(upos %in% c("NOUN"))
     stats <- txt_freq(stats$token)
     stats$key <- factor(stats$key, levels = rev(stats$key))
@@ -344,7 +343,7 @@ server <- function(input, output) {
   
   output$buzz_words_cooccurrences <- renderPlot({
     
-    stats <- cooccurrence(x = subset(ant_17, upos %in% c("NOUN", "ADJ")), 
+    stats <- cooccurrence(x = subset(ant_18, upos %in% c("NOUN", "ADJ")), 
                           term = "lemma", group = c("doc_id", "paragraph_id", "sentence_id"))
     
     wordnet <- head(stats, 40)
